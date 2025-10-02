@@ -1,6 +1,7 @@
 import os
 
 users = []
+dictusers = {}
 i = 0
 
 class Query:
@@ -19,7 +20,6 @@ class Query:
         self.timeWork = timeWork
     
     def setText(self, text):
-        # print(text)
         self.text = text
 
     def printQuery(self, filename):
@@ -77,7 +77,6 @@ class User:
 
 def proccessLog(logLine):
     logData = logLine.split(b' ')[9::]
-    # print(logData)
     global i
 
     try:
@@ -101,7 +100,6 @@ def proccessLog(logLine):
                     query = Query(queryId, id, text)
                     queryText = b"\x20".join(user.queryText)
                     query.setText(queryText[:-1:])
-                    # print(b"%20".join(user.queryText))
                     user.setQuery(query)
                     break
         
@@ -140,13 +138,37 @@ def readLogs():
         for line in file:
             proccessLog(line)
 
+def resizeDict():
+    firstConn = None
+    lastConn = None
+
+    with open('spcd.log.11', 'rb') as file:
+        for line in file:
+            if line.find(b'Incoming') != -1:
+                logData = line.split(b' ')[9::]
+                if firstConn == None:
+                    firstConn = logData[1][5:-1:]
+                    lastConn = firstConn
+                else:
+                    lastConn = logData[1][5:-1:]
+
+    keys = []
+    for i in range(int(firstConn.decode(), 16), int(lastConn.decode(), 16) + 1):
+        keys.append(hex(i)[2::])
+
+    dictusers = dict.fromkeys(keys, 0)
+
+    print(dictusers)
+
+
 
 def main():
     os.remove('errors.txt') if os.path.exists('errors.txt') else None
     os.remove('users.txt') if os.path.exists('users.txt') else None
-    readLogs()
-    for user in users:
-        user.printUser('users.txt')
+    # readLogs()
+    # for user in users:
+        # user.printUser('users.txt')
+    resizeDict()
 
 if __name__ == "__main__":
     main()
