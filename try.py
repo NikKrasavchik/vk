@@ -80,6 +80,7 @@ class User:
             f.write(b"IP:         " + self.ip + b"\n")
             f.write(b"Worker:     " + self.worker + b"\n")
             f.write(b"-----QUERY-----\n")
+            f.write(b"Qid:        " + self.queryId + b"\n")
             f.write(b"Id:         " + self.id + b"\n")
             f.write(b"Text full:  " + self.textFull + b"\n")
             f.write(b"Text:       " + self.queryText + b"\n")
@@ -107,7 +108,8 @@ def proccessLog(logLine):
             if queryText[-1][-1] == 10:
                 queryText[-1] = queryText[-1][:-1:]
             dictusers[byteTextToHex(logData[1][5:-1:])[2::]].setQueryText(queryText)
-        
+        # return
+
         if (logData[0][:5:] == b'Query'):
             queryIdNew = logData[0][6:-1:].decode()
             queryIdFirst = dictusers[list(dictusers.keys())[0]].getQueryId().decode()
@@ -118,7 +120,8 @@ def proccessLog(logLine):
             id = logData[1][1:-1:]
             text = logData[4][2:(logData[4].find(b'&_')):]
             dictusers[connectionNew].setQuery(id, text)
-        
+        # return
+
         if (logData[0] == b'Sending'):
             queryIdNew = logData[1][6:-1:].decode()
             queryIdFirst = dictusers[list(dictusers.keys())[0]].getQueryId().decode()
@@ -126,6 +129,8 @@ def proccessLog(logLine):
             connectionFirst = int(list(dictusers.keys())[0], 16)
             connectionNew = str(hex(connectionFirst + queryIdDiff))[2::]
             dictusers[connectionNew].setWorker(logData[4][7:-2:])
+
+        # return
         
         if (logData[0] == b'End'):
             queryIdNew = logData[1][6:-1:].decode()
@@ -137,7 +142,8 @@ def proccessLog(logLine):
             timeQueue = logData[8]
             timeWork = logData[10]
             dictusers[connectionNew].setTime(timeFull, timeQueue, timeWork)
-                    
+
+        # return            
 
     except Exception as e:
         pass
@@ -153,7 +159,7 @@ def proccessLog(logLine):
         
 
 def readLogs():
-    with open('spcd.log copy.11', 'rb') as file:
+    with open('spcd.log.11', 'rb') as file:
         for line in file:
             proccessLog(line)
 
@@ -161,7 +167,7 @@ def resizeDict():
     firstConn = None
     lastConn = None
 
-    with open('spcd.log copy.11', 'rb') as file:
+    with open('spcd.log.11', 'rb') as file:
         for line in file:
             if line.find(b'Incoming') != -1:
                 logData = line.split(b' ')[9::]
@@ -179,10 +185,10 @@ def resizeDict():
 
     # print(dictusers)
 
-
+# newusers = []
 
 def main():
-    # os.remove('errors.txt') if os.path.exists('errors.txt') else None
+    os.remove('errors.txt') if os.path.exists('errors.txt') else None
     os.remove('users.txt') if os.path.exists('users.txt') else None
     resizeDict()
     readLogs()
@@ -190,6 +196,9 @@ def main():
         dictusers[user].printUser('users.txt')
     for user in users:
         user.printUser('users.txt')
+
+    # for user in dictusers:
+    #     if user.
 
 if __name__ == "__main__":
     main()
